@@ -1,3 +1,4 @@
+/*jshint  mootools:true */
 /*!
  * Real Shadow v1.0.1
  * https://github.com/Indamix/real-shadow
@@ -6,51 +7,52 @@
  * Licensed under the MIT license
  * https://raw.github.com/Indamix/real-shadow/master/license.txt
  */
-(function($, window, undefined){
+(function(window, undefined){
+	"use strict";
 
 	// TODO add fn(height) to pass shape form
 	var settings = {
-			followMouse: true,
+			followMouse: true
 		},
 		pi = Math.PI,
 		els = [];
 
-	$.fn.realshadow = function(options){
-		$.extend(settings, options);
-		if (!els.length && settings.followMouse) $(document.body).mousemove(frame);
-		$(window).resize(updatePositions);
+	Element.implement('realshadow', function(options){
+
+		options = Object.merge({}, settings, options);
+		if (!els.length && settings.followMouse) $(document.body).addEvent('mousemove', frame);
+		$(window).addEvent('resize', updatePositions);
 
 		add(this);
+
 		frame({
-			pageX: settings.pageX !== undefined ? settings.pageX : $(window).width() >> 1,
-			pageY: settings.pageY !== undefined ? settings.pageY : 0
+			page: {
+				x: settings.pageX !== undefined ? settings.pageX : $(window).getWidth() >> 1,
+				y: settings.pageY !== undefined ? settings.pageY : 0
+			}
 		});
-		
-	};
-	// $.fn.realshadow.frame=frame; //TODO
 
-	function add($els){
-		$.each($els, function(i, el){
-			var $el = $(el),
-				offset = $el.offset(),
-				c = $el.attr('rel'),
-				p = {
-					dom: el,
-					x: offset.left + ($el.outerWidth () >> 1),
-					y: offset.top  + ($el.outerHeight() >> 1)
-				};
+	});
 
-			if (c)
-				p.c = {
-					r: c.indexOf('r') !== -1,
-					g: c.indexOf('g') !== -1,
-					b: c.indexOf('b') !== -1
-				}
-			else
-				if (settings.c) p.c = settings.c;
+	function add(el){
+		var offset = el.getPosition(),
+			c = el.get('rel'),
+			p = {
+				dom: el,
+				x: offset.x + (el.getWidth () >> 1),
+				y: offset.y  + (el.getHeight() >> 1)
+			};
 
-			els.push(p);
-		});
+		if (c)
+			p.c = {
+				r: c.indexOf('r') !== -1,
+				g: c.indexOf('g') !== -1,
+				b: c.indexOf('b') !== -1
+			}
+		else
+			if (settings.c) p.c = settings.c;
+
+		els.push(p);
 	}
 
 	function updatePositions(){
@@ -60,9 +62,9 @@
 
 		while (i--) {
 			el = els[i];
-			offset = $(el.dom).offset();
-			el.x = offset.left;
-			el.y = offset.top;
+			offset = el.dom.getPosition();
+			el.x = offset.x;
+			el.y = offset.y;
 		}
 	}
 
@@ -97,7 +99,7 @@
 
 	var params = {
 		nMax: 2.3,
-		pow: .8,
+		pow: 0.8,
 		div: 1500
 	}
 
@@ -108,8 +110,8 @@
 		while (i--) {
 			el = els[i];
 
-			var x = e.pageX - els[i].x,
-				y = e.pageY - els[i].y,
+			var x = e.page.x - els[i].x,
+				y = e.page.y - els[i].y,
 				n = Math.pow(x * x + y * y, params.pow)
 			n = n / params.div + 1; // TODO n = f(obj.size, distance)
 
@@ -123,4 +125,4 @@
 		}
 	}
 
-})(jQuery, this);
+})(this);
